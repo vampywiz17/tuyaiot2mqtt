@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import paho.mqtt.client as mqtt
 from tuya_connector import TUYA_LOGGER, TuyaOpenPulsar, TuyaCloudPulsarTopic
 
