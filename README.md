@@ -3,12 +3,15 @@ Connect Tuya IoT Development Platform to local MQTT server
 
 This little script connect Tuya IoT Platform to local MQTT server. In this method is possible to catch specific messages that Tuya devices only send to cloud and not possible to hande it with local tuya API (like alarm system alert, doorbell push, etc...)
 
+This method is build a MQTT connection between Tuya and your computer. It is the most "deeper" connection that possible to use it with regual user. So it really fast. But of course, it depend the Tuya servers avability!
+
 Attention!
 
 - This script not able to control tuya devices! My goal is only catch "cloud only" messages, I control all devices with [tuya-local](https://github.com/make-all/tuya-local) integration.
 - It only work that you register https://iot.tuya.com/ website and create a project! Follow this rule to do this: https://www.home-assistant.io/integrations/tuya/
 - To this script work, need to add "Industry Project Client Service" to your project and enable "Message Service"
-- This script send formated json to local MQTT, but it unsuitable to send it to Home Assistant or other Smart Home system directly! Need to deal with it. The simplest way, that use Node-RED!
+- This script send formated json to local MQTT, but this unsuitable to send it to Home Assistant or other Smart Home system directly! Need to deal with it. The simplest way, that use Node-RED!
+- If Tuya servers are not available, of course this script is not working! 
 
 # INSTALL
 
