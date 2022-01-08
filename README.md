@@ -3,7 +3,7 @@ Connect Tuya IoT Development Platform to local MQTT server
 
 This little script connect Tuya IoT Platform to local MQTT server. In this method is possible to catch specific messages that Tuya devices only send to cloud and not possible to hande it with local tuya API (like alarm system alert, doorbell push, etc...)
 
-This method is build a MQTT connection between Tuya and your computer. It is the most "deeper" connection that possible to use it with regular user. So it really fast. But of course, it depend the Tuya servers avability!
+This method is build a MQTT connection between Tuya and your computer. It is the most "deeper" connection that possible to use it with regular user. So it really fast. But of course, it depend the Tuya servers availability!
 
 Attention!
 
