@@ -53,7 +53,7 @@ After=multi-user.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/bin/python3 /opt/iot2mqtt/tuyaiot2mqtt.py
+ExecStart=/usr/bin/python3 /opt/tuyaiot2mqtt/tuyaiot2mqtt.py
 [Install]
 WantedBy=multi-user.target
 ```
