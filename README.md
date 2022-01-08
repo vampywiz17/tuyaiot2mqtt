@@ -58,3 +58,5 @@ ExecStart=/usr/bin/python3 /opt/tuyaiot2mqtt/tuyaiot2mqtt.py
 WantedBy=multi-user.target
 ```
 
+
+***This script and all dependencies are tested in Ubuntu 20.04 LTS***
