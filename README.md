@@ -58,5 +58,18 @@ ExecStart=/usr/bin/python3 /opt/tuyaiot2mqtt/tuyaiot2mqtt.py
 WantedBy=multi-user.target
 ```
 
+# Run as Docker Container
+
+dependencies:
+
+Install latest Docker Engine 
+
+https://docs.docker.com/engine/install/
+
+- clone this repo
+- go do "Docker" folder
+- Run `sudo docker build -t tuyaiot2mqtt .` to create docker image
+- Fill out the .env file to the necessary data
+- Start Container with this command: `sudo docker run --name tuyaiot2mqtt --env-file .env -d tuyaiot2mqtt`
 
 ***This script and all dependencies are tested in Ubuntu 20.04 LTS***
