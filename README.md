@@ -26,6 +26,16 @@ Install Python 3 and modules, and clone this repo. (install modules with `sudo p
 
 Edit tuyaiot2mqtt.py, fill out the "config" section.
 
+**Available regions:**
+
+```
+Location	MQ_ENDPOINT
+China		wss://mqe.tuyacn.com:8285/
+America		wss://mqe.tuyaus.com:8285/
+Europe		wss://mqe.tuyaeu.com:8285/
+India		wss://mqe.tuyain.com:8285/
+```
+
 Run this commands:
 
 `chmod +x tuyaiot2mqtt.py`
