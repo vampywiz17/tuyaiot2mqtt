@@ -26,7 +26,7 @@ BROKER_PORT_INT = int(BROKER_PORT)
 
 client = mqtt.Client(CLIENT_NAME)
 client.username_pw_set(username=USERNAME,password=PASSWORD)
-BROKER_PORT_INT = int(BROKER_PORT)
+
 open_pulsar.add_message_listener(lambda msg: (client.connect(BROKER_ADDRESS, BROKER_PORT_INT), client.publish(TOPIC,msg)))
 
 # Start Message Queue
