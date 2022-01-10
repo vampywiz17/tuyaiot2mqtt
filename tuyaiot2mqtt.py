@@ -8,9 +8,9 @@ from tuya_connector import TUYA_LOGGER, TuyaOpenPulsar, TuyaCloudPulsarTopic
 ACCESS_ID = "" # Tuya IoT ID
 ACCESS_KEY = "" # Tuya IoT key
 BROKER_ADDRESS = "" # Local mqtt server address
-BROKER_PORT = ""
-USERNAME = ""
-PASSWORD = ""
+BROKER_PORT = "" # Leave it blank, if use default
+USERNAME = "" # Leave it blank, if not use authentication
+PASSWORD = "" # Leave it blank, if not use authentication
 TOPIC = ""  # mqtt topic name
 MQ_ENDPOINT = "wss://mqe.tuyaeu.com:8285/" # Tuya MQTT endpoint. Only need to change, if you use different region, not EU
 CLIENT_NAME = "tuya_iot_client" # Client name. Not need to change, by default
