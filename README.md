@@ -72,4 +72,9 @@ https://docs.docker.com/engine/install/
 - Fill out the .env file to the necessary data
 - Start Container with this command: `sudo docker run --name tuyaiot2mqtt --env-file .env -d tuyaiot2mqtt`
 
+# Install from Docker Hub
+
+- download .env file from this repository and fill out.
+- run this command: `sudo docker run --env-file .env --restart always -d --name tuyaiot2mqtt vampywiz17/tuyaiot2mqtt`
+
 ***This script and all dependencies are tested in Ubuntu 20.04 LTS***
