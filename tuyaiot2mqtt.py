@@ -8,6 +8,9 @@ from tuya_connector import TUYA_LOGGER, TuyaOpenPulsar, TuyaCloudPulsarTopic
 ACCESS_ID = "" # Tuya IoT ID
 ACCESS_KEY = "" # Tuya IoT key
 BROKER_ADDRESS = "" # Local mqtt server address
+BROKER_PORT = ""
+USERNAME = ""
+PASSWORD = ""
 TOPIC = ""  # mqtt topic name
 MQ_ENDPOINT = "wss://mqe.tuyaeu.com:8285/" # Tuya MQTT endpoint. Only need to change, if you use different region, not EU
 CLIENT_NAME = "tuya_iot_client" # Client name. Not need to change, by default
@@ -19,8 +22,9 @@ open_pulsar = TuyaOpenPulsar(
 )
 
 client = mqtt.Client(CLIENT_NAME)
+client.username_pw_set(username=USERNAME,password=PASSWORD)
 
-open_pulsar.add_message_listener(lambda msg: (client.connect(BROKER_ADDRESS), client.publish(TOPIC,msg)))
+open_pulsar.add_message_listener(lambda msg: (client.connect(BROKER_ADDRESS, BROKER_PORT), client.publish(TOPIC,msg)))
 
 # Start Message Queue
 open_pulsar.start()
