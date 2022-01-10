@@ -9,6 +9,9 @@ import os
 ACCESS_ID = os.environ['ACCESS_ID']
 ACCESS_KEY = os.environ['ACCESS_KEY']
 BROKER_ADDRESS = os.environ['BROKER_ADDRESS']
+BROKER_PORT = os.environ['BROKER_PORT']
+USERNAME = os.environ['USERNAME']
+PASSWORD = os.environ['PASSWORD']
 TOPIC = os.environ['TOPIC']
 MQ_ENDPOINT = os.environ['MQ_ENDPOINT']
 CLIENT_NAME = os.environ['CLIENT_NAME']
@@ -20,8 +23,9 @@ open_pulsar = TuyaOpenPulsar(
 )
 
 client = mqtt.Client(CLIENT_NAME)
+client.username_pw_set(username=USERNAME,password=PASSWORD)
 
-open_pulsar.add_message_listener(lambda msg: (client.connect(BROKER_ADDRESS), client.publish(TOPIC,msg)))
+open_pulsar.add_message_listener(lambda msg: (client.connect(BROKER_ADDRESS, BROKER_PORT), client.publish(TOPIC,msg)))
 
 # Start Message Queue
 open_pulsar.start()
