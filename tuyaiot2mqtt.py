@@ -12,8 +12,8 @@ BROKER_PORT = "" # Leave it blank, if use default
 USERNAME = "" # Leave it blank, if not use authentication
 PASSWORD = "" # Leave it blank, if not use authentication
 TOPIC = ""  # mqtt topic name
-MQ_ENDPOINT = "wss://mqe.tuyaeu.com:8285/" # Tuya MQTT endpoint. Only need to change, if you use different region, not EU
-CLIENT_NAME = "tuya_iot_client" # Client name. Not need to change, by default
+MQ_ENDPOINT = "" # Tuya MQTT endpoint. See available regions in README
+CLIENT_NAME = "" # Client name
 
 # End config
 

@@ -80,7 +80,7 @@ https://docs.docker.com/engine/install/
 - go do "Docker" folder
 - Run `sudo docker build -t tuyaiot2mqtt .` to create docker image
 - Fill out the .env file to the necessary data
-- Start Container with this command: `sudo docker run --name tuyaiot2mqtt --env-file .env -d tuyaiot2mqtt`
+- Start Container with this command: `sudo docker run --name tuyaiot2mqtt --env-file .env --restart always -d tuyaiot2mqtt`
 
 # Install from Docker Hub
 
