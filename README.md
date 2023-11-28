@@ -1,3 +1,31 @@
+# FOR TESTING! Command script
+
+i created a new python script that able to control Tuya devices with MQTT via cloud. it is a initial release, not correct documentation and no error handling! If you add incorrect data, the script are crash, so be carefull with live usage! 
+
+Configuration are similar with listener, but it use API endpoints. These are:
+
+```
+Location	API_ENDPOINT
+China		https://openapi.tuyacn.com
+America		https://openapi.tuyaus.com
+Europe		https://openapi.tuyaeu.com
+India		https://openapi.tuyain.com
+```
+
+**Send data**
+
+The script are accept JSON messages. Here a example:
+
+```
+{
+'id':'device_id',
+'code': 'switch', 'value': True
+}
+```
+These JSONs are found on Tuya IoT portal, the specific device "Device Debugging" view. The "id" field are also required, it is the Device-ID that you obtain the Tuya IoT portal.
+
+Please test it!
+
 # tuyaiot2mqtt
 Connect Tuya IoT Development Platform to local MQTT server
 
