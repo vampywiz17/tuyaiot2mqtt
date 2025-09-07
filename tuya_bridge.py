@@ -328,12 +328,27 @@ def handle_api_request(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     Two modes:
       A) action-mode: {"action": "...", ...}
-      B) passthrough-mode: {"method":"GET","path":"/v1.3/iot-03/devices","params":{...},"body":{...}}
-         (not implemented here to keep things simple; add as needed)
+      B) passthrough-mode:
+         {
+           "method": "GET|POST|PUT|DELETE",
+           "path": "/v1.3/iot-03/devices",
+           "params": { ... },   # optional (GET/DELETE)
+           "body":   { ... },   # optional (POST/PUT)
+           "correlation_id": "..."
+         }
     """
     if "action" in payload:
         return handle_api_action(payload)
-    return {"success": False, "msg": "Unsupported request (missing 'action')"}
+
+    method = payload.get("method", "GET")
+    path   = payload.get("path")
+    params = payload.get("params") or {}
+    body   = payload.get("body")   or {}
+
+    if not path:
+        return {"success": False, "msg": "Missing 'path' for passthrough mode"}
+
+    return tuya_api_call(method, path, params=params, body=body)
 
 
 # =========================
