@@ -1,118 +1,176 @@
-# FOR TESTING! Command script
-
-i created a new python script that able to control Tuya devices with MQTT via cloud. it is a initial release, not correct documentation and no error handling! If you add incorrect data, the script are crash, so be carefull with live usage! 
-
-Configuration are similar with listener, but it use API endpoints. These are:
-
-```
-Location	API_ENDPOINT
-China		https://openapi.tuyacn.com
-America		https://openapi.tuyaus.com
-Europe		https://openapi.tuyaeu.com
-India		https://openapi.tuyain.com
-```
-
-**Send data**
-
-The script are accept JSON messages. Here a example:
-
-```
-{
-'id':'device_id',
-'code': 'switch', 'value': True
-}
-```
-These JSONs are found on Tuya IoT portal, the specific device "Device Debugging" view. The "id" field are also required, it is the Device-ID that you obtain the Tuya IoT portal.
-
-Please test it!
+# FOR TESTING! Command script version 2
 
 # tuyaiot2mqtt
-Connect Tuya IoT Development Platform to local MQTT server
 
-This little script connect Tuya IoT Platform to local MQTT server. In this method is possible to catch specific messages that Tuya devices only send to cloud and not possible to hande it with local tuya API (like alarm system alert, doorbell push, etc...)
+Bridge between the Tuya IoT Development Platform and a local MQTT broker.
 
-This method is build a MQTT connection between Tuya and your computer. It is the most "deeper" connection that possible to use it with regular user. So it really fast. But of course, it depend the Tuya servers availability!
+This script connects your Tuya IoT project to a local MQTT broker.  
+It forwards Tuya cloud device events into MQTT topics and also allows you to send commands from MQTT back to Tuya devices.
 
-Attention!
+This is useful for catching and controlling features that are only exposed via the Tuya cloud (e.g. alarm system alerts, doorbell pushes) which cannot be accessed via the local Tuya APIs.
 
-- This script not able to control tuya devices! My goal is only catch "cloud only" messages, I control all devices with [tuya-local](https://github.com/make-all/tuya-local) integration.
-- It only work that you register https://iot.tuya.com/ website and create a project! Follow this rule to do this: https://www.home-assistant.io/integrations/tuya/
-- To this script work, need to add "Industry Project Client Service" to your project and enable "Message Service"
-- This script send formated json to local MQTT, but this unsuitable to send it to Home Assistant or other Smart Home system directly! Need to deal with it. The simplest way, that use Node-RED!
-- If Tuya servers are not available, of course this script is not working! 
+---
 
-# INSTALL
+## Features
 
-dependencies:
+- **Two-way bridge**
+  - MQTT → Tuya Cloud (send commands)
+  - Tuya Cloud → MQTT (receive events)
+- Error handling & logging
+- Works in Docker (recommended)
+- Configurable topics and credentials via environment variables
 
-- Python 3
-- Pip3
-- tuya-connector-python
-- paho-mqtt
+---
 
-Install Python 3 and modules, and clone this repo. (install modules with `sudo pip3 install --user` argument, if you want to use it systemd service!)
+## Requirements
 
-Edit tuyaiot2mqtt.py, fill out the "config" section.
+- A Tuya IoT account at [https://iot.tuya.com/](https://iot.tuya.com/) with a registered project.  
+  Follow the setup guide: [Home Assistant Tuya integration](https://www.home-assistant.io/integrations/tuya/).
+- Enable **Industry Project Client Service** and **Message Service** for your Tuya project.
+- Access ID and Access Key from your Tuya project.
+- API and MQ endpoints for your region (see below).
 
-**Available regions:**
+---
 
+## Endpoints
+
+### API endpoints
+
+| Location | API_ENDPOINT                  |
+|----------|-------------------------------|
+| China    | https://openapi.tuyacn.com    |
+| America  | https://openapi.tuyaus.com    |
+| Europe   | https://openapi.tuyaeu.com    |
+| India    | https://openapi.tuyain.com    |
+
+### MQ endpoints
+
+| Location | MQ_ENDPOINT                    |
+|----------|--------------------------------|
+| China    | wss://mqe.tuyacn.com:8285/     |
+| America  | wss://mqe.tuyaus.com:8285/     |
+| Europe   | wss://mqe.tuyaeu.com:8285/     |
+| India    | wss://mqe.tuyain.com:8285/     |
+
+---
+
+## MQTT Topics
+
+- **Command topic** (default: `tuya/command`)  
+  Send JSON commands here, which will be forwarded to Tuya OpenAPI.
+
+- **Acknowledgements** (default: `tuya/ack/...`)  
+  - `tuya/ack/ok` – command succeeded  
+  - `tuya/ack/error` – command failed (with error details)
+
+- **Events** (default: `tuya/event/...`)  
+  Device state updates and Pulsar events forwarded from Tuya.  
+  Typically published as `tuya/event/<deviceId>`.
+
+---
+
+## Example Command Payloads
+
+**Single command:**
+
+```json
+{
+  "id": "deviceID",
+  "code": "switch_1",
+  "value": true
+}
 ```
-Location	MQ_ENDPOINT
-China		wss://mqe.tuyacn.com:8285/
-America		wss://mqe.tuyaus.com:8285/
-Europe		wss://mqe.tuyaeu.com:8285/
-India		wss://mqe.tuyain.com:8285/
+
+***Multiple commands:***
+
+```json
+{
+  "id": "deviceID",
+  "commands": [
+    { "code": "switch_1", "value": true },
+    { "code": "bright_value", "value": 500 }
+  ]
+}
 ```
 
-Run this commands:
+***Notes:***
 
-`chmod +x tuyaiot2mqtt.py`
+- `id` is the Tuya **device ID** (from the IoT portal).
+- `code` and `value` come from the **Device Debugging** page in the IoT portal.
+- Use lowercase `true`/`false` for boolean values (JSON standard).
 
-`./tuyaiot2mqtt.py`
+---
 
-Done!
+## Usage with Home Assistant
 
-# Run as systemd service
+This script publishes raw JSON payloads to MQTT.  
+They are **not directly usable** as Home Assistant devices.  
+Instead, you can:
 
-install tuyaiot2mqtt.py
+- Use **MQTT sensor/switch templates**: https://www.home-assistant.io/integrations/sensor.mqtt/  
+- Or use **Node-RED** flows to process the messages.
 
-`sudo install -D -m 764 iot2mqtt.py /opt/tuyaiot2mqtt/tuyaiot2mqtt.py`
+---
 
-create a new systemd service:
+## Installation
 
-`sudo vi /etc/systemd/system/tuyaiot2mqtt.service`
+### 1. Clone the repo
 
-copy this:
-
-```
-[Unit]
-Description=tuyaiot2mqtt service
-After=multi-user.target
-[Service]
-Type=simple
-Restart=always
-ExecStart=/usr/bin/python3 /opt/tuyaiot2mqtt/tuyaiot2mqtt.py
-[Install]
-WantedBy=multi-user.target
+```bash
+git clone https://github.com/vampywiz17/tuyaiot2mqtt.git
+cd tuyaiot2mqtt
 ```
 
-# Run as Docker Container
+### 2. Build Docker image
 
-dependencies:
+```bash
+docker build -t tuyaiot2mqtt .
+```
 
-Install latest Docker Engine 
+### 3. Run with Docker Compose
 
-https://docs.docker.com/engine/install/
+Edit the provided `docker-compose.yml` and set your environment variables:
 
-- clone this repo
-- go do "Docker" folder
-- Run `sudo docker build -t tuyaiot2mqtt .` to create docker image
-- Fill out the .env file to the necessary data
-- Start Container with this command: `sudo docker run --name tuyaiot2mqtt --env-file .env --restart always -d tuyaiot2mqtt`
+```yaml
+services:
+  tuya-bridge:
+    image: tuyaiot2mqtt:latest
+    restart: unless-stopped
+    environment:
+      TUYA_ACCESS_ID: "<your-tuya-access-id>"
+      TUYA_ACCESS_KEY: "<your-tuya-access-key>"
+      TUYA_API_ENDPOINT: "https://openapi.tuyaeu.com"
+      TUYA_MQ_ENDPOINT: "wss://mqe.tuyaeu.com:8285/"
+      MQTT_HOST: "127.0.0.1"
+      MQTT_PORT: "1883"
+      MQTT_USERNAME: ""
+      MQTT_PASSWORD: ""
+      MQTT_CLIENT_ID: "tuya-bridge"
+      MQTT_KEEPALIVE: "60"
+      MQTT_COMMAND_TOPIC: "tuya/command"
+      MQTT_EVENT_TOPIC: "tuya/event"
+      MQTT_ACK_TOPIC: "tuya/ack"
+      LOG_LEVEL: "INFO"
+      MQTT_TLS: "false"
+      MQTT_TLS_INSECURE: "false"
+```
 
-# Install from Docker Hub
+Then start it:
 
-- download .env file from this repository and fill out.
-- run this command: `sudo docker run --env-file .env --restart always -d --name tuyaiot2mqtt vampywiz17/tuyaiot2mqtt`
+```bash
+docker compose up -d
+```
 
-***This script and all dependencies are tested in Ubuntu 20.04 LTS***
+---
+
+## Notes & Limitations
+
+- This depends on the Tuya cloud. If Tuya servers are unavailable, the bridge cannot function.
+- This is **not a replacement** for the official Tuya or LocalTuya integrations.
+- Best suited for catching special events that don’t propagate locally.
+
+---
+
+## Status
+
+Experimental / for testing. Feedback and contributions welcome!
