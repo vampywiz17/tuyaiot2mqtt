@@ -75,7 +75,7 @@ This is useful for catching and controlling features that are only exposed via t
 
 ```json
 {
-  "id": "deviceID",
+  "id": "<device_ID>",
   "code": "switch_1",
   "value": true
 }
