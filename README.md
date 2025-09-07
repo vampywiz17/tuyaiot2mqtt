@@ -85,19 +85,64 @@ This is useful for catching and controlling features that are only exposed via t
 
 ```json
 {
-  "id": "deviceID",
+  "id": "<DEVICE_ID>",
   "commands": [
     { "code": "switch_1", "value": true },
     { "code": "bright_value", "value": 500 }
   ]
 }
 ```
+## Supported API Payloads
+
+***List devices***
+
+```json
+{
+  "action": "list_devices",
+  "page_size": 50,
+  "source_type": "tuyaUser",
+  "source_id": "<YOUR_UID>",
+  "correlation_id": "list-1"
+}
+```
+
+***Device status***
+
+```json
+{
+  "action": "device_status",
+  "id": "<DEVICE_ID>",
+  "correlation_id": "status-1"
+}
+```
+
+***Device specifications***
+
+```json
+{
+  "action": "device_specifications",
+  "id": "<DEVICE_ID>",
+  "correlation_id": "spec-1"
+}
+```
+
+***Passthrough mode example***
+
+```json
+  {
+    "method": "GET",
+    "path": "/v1.0/iot-03/devices/<DEVICE_ID>/status",
+    "correlation_id": "pt-2"
+  }
+```
+
 
 ***Notes:***
 
 - `id` is the Tuya **device ID** (from the IoT portal).
 - `code` and `value` come from the **Device Debugging** page in the IoT portal.
 - Use lowercase `true`/`false` for boolean values (JSON standard).
+- You found UID with Tuya/Smart home app pair page on Development portal
 
 ---
 
