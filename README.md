@@ -116,6 +116,16 @@ This is useful for catching and controlling features that are only exposed via t
 }
 ```
 
+***Device functions***
+
+```json
+{
+  "action": "device_functions",
+  "id": "<DEVICE_ID>",
+  "correlation_id": "func-1"
+}
+```
+
 ***Device specifications***
 
 ```json
