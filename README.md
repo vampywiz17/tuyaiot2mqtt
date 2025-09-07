@@ -67,6 +67,10 @@ This is useful for catching and controlling features that are only exposed via t
   Device state updates and Pulsar events forwarded from Tuya.  
   Typically published as `tuya/event/<deviceId>`.
 
+- **API topics**
+  - Request topic: `tuya/api/request`
+  - Response topic: `tuya/api/response`
+
 ---
 
 ## Example Command Payloads
