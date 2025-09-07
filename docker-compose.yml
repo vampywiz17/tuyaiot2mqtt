@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  tuya-bridge:
+    container_name: tuya-bridge
+    restart: unless-stopped
+    environment:
+      TUYA_ACCESS_ID: "your-tuya-access-id"
+      TUYA_ACCESS_KEY: "your-tuya-access-key"
+      TUYA_API_ENDPOINT: "https://openapi.tuyaeu.com"   # set to your region
+      TUYA_MQ_ENDPOINT: "wss://mqe.tuyaeu.com:8285/"    # set to your region
+
+      # MQTT connection
+      MQTT_HOST: "mosquitto"  # or your external broker host/IP
+      MQTT_PORT: "1883"
+      MQTT_USERNAME: ""       # leave empty if no auth
+      MQTT_PASSWORD: ""       # leave empty if no auth
+      MQTT_CLIENT_ID: "tuya-bridge"
+      MQTT_KEEPALIVE: "60"
+
+      # Topics
+      MQTT_COMMAND_TOPIC: "tuya/command"
+      MQTT_EVENT_TOPIC: "tuya/event"
+      MQTT_ACK_TOPIC: "tuya/ack"
+
+      # Logging and TLS options
+      LOG_LEVEL: "INFO"       # DEBUG | INFO | WARNING | ERROR
+      MQTT_TLS: "false"       # "true" to enable TLS
+      MQTT_TLS_INSECURE: "false"  # "true" to skip cert validation (testing only)
