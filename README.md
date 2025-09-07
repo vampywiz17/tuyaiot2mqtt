@@ -143,11 +143,11 @@ This is useful for catching and controlling features that are only exposed via t
 ***Passthrough mode example***
 
 ```json
-  {
+{
     "method": "GET",
-    "path": "/v1.0/iot-03/devices/<DEVICE_ID>/status",
+    "path": "/v2.0/cloud/thing/<DEVICE_ID>/state",
     "correlation_id": "pt-2"
-  }
+}
 ```
 
 
