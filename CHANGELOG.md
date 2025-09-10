@@ -3,6 +3,40 @@ Changelog
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.0.3] – 2025-09-10
+### Added
+- Fast JSON serialization via `orjson` if available; fallback to `json` with compact separators. Introduced `_dumps()` helper.
+- Central `stop_event` `threading.Event()` for cleaner shutdown of background workers.
+- Parallel command processing using configurable `CMD_WORKERS` threads.
+- Dedicated Tuya event worker thread: listener now only queues events, worker handles MQTT emits.
+- Robust Pulsar supervisor: on errors, creates a new `TuyaOpenPulsar` instance (avoids “threads can only be started once” issues).
+- Optional `TCP_NODELAY` on MQTT client to reduce Nagle-induced latency.
+
+### Changed
+- Simplified helpers: merged JSON dump, correlation generation, payload parse, and publish into concise, flat helper functions (`_fast_dump`, `_gen_corr`, `parse_payload()`, `mqtt_publish()`).
+- MQTT publishing no longer blocks or manually reconnects. Offline messages are queued in `_out_q` and flushed on reconnect (in `on_connect()`).
+- Persistent MQTT session (`clean_session=False`), with automatic resubscribe on connect.
+- Added ability to configure QoS levels via environment variables (`EVENT_QOS`, `ACK_QOS`, `API_QOS`, defaulting to 0 for minimal latency).
+- Simplified spec normalization in ` _normalize_spec_result_to_legacy()` with clearer value handling using `_dumps()`.
+- Increased default MQTT inflight messages (40) and disabled built-in queue in favor of custom queue.
+
+### Fixed
+- Fixed deadlock issue in Pulsar handling: now recreates `TuyaOpenPulsar` instance upon failure instead of restarting existing thread.
+- Ensured all MQTT callbacks (`on_connect`, `on_message`, etc.) are compatible with v5/v2 callback signatures (`properties=None` present).
+
+### Performance
+- Reduced blocking: removed `wait_for_publish()` and moved to worker-thread-based command execution.
+- Lower latency on publishing and JSON handling.
+- Tuned Paho settings: `max_inflight_messages_set(40)`, `max_queued_messages_set(0)`—custom queue used instead.
+- More responsive shutdown: background threads use shorter timeouts for quicker termination.
+
+### Configuration / Dev Changes
+- Added optional environment variables:
+  - `EVENT_QOS`, `ACK_QOS`, `API_QOS`
+  - `CMD_WORKERS`, `OUT_QUEUE_SIZE`, `EVT_QUEUE_SIZE`, `CMD_QUEUE_SIZE`
+- No changes required for existing configuration values (`ACCESS_ID`, `MQTT_*`, etc.).
+- Backward compatible; behavior remains consistent unless optional vars are modified.
+
 [0.0.2] — 2025-09-08
 --------------------
 
