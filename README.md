@@ -1,4 +1,4 @@
-# FOR TESTING! Command script version 2
+# Command script version 2
 
 # tuyaiot2mqtt
 
