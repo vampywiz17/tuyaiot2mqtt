@@ -149,7 +149,66 @@ This is useful for catching and controlling features that are only exposed via t
     "correlation_id": "pt-2"
 }
 ```
+***Rule list***
 
+```json
+{
+  "action": "rule_list",
+  "space_id": "<SPACE_ID>",
+  "type": "automation",
+  "page_no": 1,
+  "page_size": 20,
+  "correlation_id": "rules-1"
+}
+```
+
+***Rule detail***
+
+```json
+{
+  "action": "rule_detail",
+  "rule_id": "<RULE_ID>",
+  "correlation_id": "rule-detail-1"
+}
+```
+
+***Rule trigger (Tap-to-Run only)***
+
+```json
+{
+  "action": "rule_trigger",
+  "rule_id": "<RULE_ID>",
+  "rule_type": "tap_to_run",
+  "correlation_id": "rule-trigger-1"
+}
+```
+
+***Rule state (Automation only)***
+
+```json
+{
+  "action": "rule_state",
+  "rule_id": "<RULE_ID>",
+  "enable": true,
+  "rule_type": "automation",
+  "space_id": "<SPACE_ID>",
+  "correlation_id": "rule-state-1"
+}
+```
+
+***Device logs***
+
+```json
+{
+  "action": "device_logs",
+  "device_id": "<DEVICE_ID>",
+  "start_time_ms": 1725900000000,
+  "end_time_ms": 1725986400000,
+  "types": "1,2,7",
+  "size": 100,
+  "correlation_id": "logs-1"
+}
+```
 
 ***Notes:***
 
