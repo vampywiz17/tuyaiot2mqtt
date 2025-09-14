@@ -203,6 +203,83 @@ def tuya_api_call(method: str, path: str,
         logger.exception("Tuya API call failed: %s %s", m, path)
         return {"success": False, "msg": str(e)}
 
+# -------------------- Scene Linkage Rules helpers ---------------------------
+def tuya_rules_query(params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    List/filter Scene Linkage Rules (IoT Core).
+    GET /v2.0/cloud/scene/rule
+    Supports both Automation and Tap-to-Run entries.
+    """
+    return tuya_api_call("GET", "/v2.0/cloud/scene/rule", params=params or {})
+
+def tuya_rule_detail(rule_id: str) -> Dict[str, Any]:
+    """
+    Get rule detail.
+    GET /v2.0/cloud/scene/rule/{rule_id}
+    Detail will indicate 'type': 'automation' or 'scene' (Tap-to-Run).
+    """
+    return tuya_api_call("GET", f"/v2.0/cloud/scene/rule/{rule_id}")
+
+def tuya_rule_trigger_ttr(rule_id: str) -> Dict[str, Any]:
+    """
+    Trigger a Tap-to-Run rule (Tap-to-Run only).
+    POST /v2.0/cloud/scene/rule/{rule_id}/actions/trigger
+    NOTE: do not send a body; some regions reject signed empty bodies.
+    """
+    path = f"/v2.0/cloud/scene/rule/{rule_id}/actions/trigger"
+    try:
+        resp = openapi.post(path)  # no body
+        return resp or {}
+    except Exception as e:
+        logger.exception("Tuya POST failed: %s", e)
+        return {"success": False, "msg": str(e)}
+
+def tuya_rule_set_state(rule_id: str, enable: bool, space_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Enable/disable an Automation rule (Automation only).
+    PUT /v2.0/cloud/scene/rule/state[?space_id=...]
+    Body: {"ids": "id1,id2", "is_enable": true|false}
+    """
+    path = "/v2.0/cloud/scene/rule/state"
+    if space_id:
+        try:
+            from urllib.parse import urlencode
+        except Exception:
+            urlencode = lambda d: "space_id=" + str(d.get("space_id", ""))
+        qs = urlencode({"space_id": str(space_id)})
+        path = f"{path}?{qs}"
+
+    body = {
+        "ids": str(rule_id),      # CSV supported for multiple IDs
+        "is_enable": bool(enable)
+    }
+    return tuya_api_call("PUT", path, body=body)
+
+# -------------------- Device Logs helper ------------------------------------
+def tuya_device_logs(device_id: str,
+                     start_time_ms: int,
+                     end_time_ms: int,
+                     types: Optional[str] = None,
+                     size: int = 100,
+                     codes: Optional[str] = None,
+                     start_row_key: Optional[str] = None,
+                     query_type: int = 1) -> Dict[str, Any]:
+    """
+    Query device logs within a time window (epoch ms).
+    GET /v1.0/devices/{device_id}/logs
+    Types example: "1,2,7" → online, offline, dp report.
+    """
+    params: Dict[str, Any] = {
+        "start_time": int(start_time_ms),
+        "end_time": int(end_time_ms),
+        "size": int(size),
+        "query_type": int(query_type),
+    }
+    if types: params["type"] = types
+    if codes: params["codes"] = codes
+    if start_row_key: params["start_row_key"] = start_row_key
+    return tuya_api_call("GET", f"/v1.0/devices/{device_id}/logs", params=params)
+
 # ================= High-level API actions =================
 def _normalize_spec_result_to_legacy(result: Dict[str, Any]) -> Dict[str, Any]:
     def _one(items):
@@ -220,8 +297,26 @@ def _normalize_spec_result_to_legacy(result: Dict[str, Any]) -> Dict[str, Any]:
             "functions": _one(result.get("functions")),
             "status":    _one(result.get("status"))}
 
+def _normalize_rule_type(value: Optional[str]) -> Optional[str]:
+    """
+    Normalize incoming rule_type to either 'automation' or 'tap_to_run'.
+    Accepted aliases:
+      - automation: 'automation', 'auto'
+      - tap_to_run: 'tap_to_run', 'scene', 'ttr', 'tap', 'tap-to-run'
+    """
+    if value is None:
+        return None
+    v = str(value).strip().lower()
+    if v in {"automation", "auto"}:
+        return "automation"
+    if v in {"tap_to_run", "scene", "ttr", "tap", "tap-to-run"}:
+        return "tap_to_run"
+    return None
+
 def handle_api_action(payload: Dict[str, Any]) -> Dict[str, Any]:
     act = payload.get("action")
+
+    # Device-related actions (snake_case)
     if act == "list_devices":
         params = {"page_size": int(payload.get("page_size", 100))}
         if payload.get("last_row_key"): params["last_row_key"] = payload["last_row_key"]
@@ -255,6 +350,67 @@ def handle_api_action(payload: Dict[str, Any]) -> Dict[str, Any]:
         if modern and isinstance(modern.get("result"), dict):
             return {"success": True, "result": _normalize_spec_result_to_legacy(modern["result"])}
         return {"success": False, "msg": "Unable to fetch device specifications from either endpoint"}
+
+    # Scene Linkage Rules actions (snake_case)
+    if act == "rule_list":
+        allowed = {"space_id", "type", "page_no", "page_size", "name", "enabled"}
+        params = {k: v for k, v in payload.items() if k in allowed}
+        r = tuya_rules_query(params)
+        return {"success": bool(r.get("success")), "result": r.get("result"), "msg": r.get("msg")}
+
+    if act == "rule_detail":
+        rule_id = payload.get("rule_id")
+        if not rule_id:
+            return {"success": False, "msg": "rule_id is required"}
+        r = tuya_rule_detail(rule_id)
+        return {"success": bool(r.get("success")), "result": r.get("result"), "msg": r.get("msg")}
+
+    if act == "rule_trigger":
+        # Tap-to-Run only
+        rule_id = payload.get("rule_id")
+        rule_type = _normalize_rule_type(payload.get("rule_type") or payload.get("type"))
+        if not rule_id:
+            return {"success": False, "msg": "rule_id is required"}
+        if rule_type is None:
+            return {"success": False, "msg": "rule_type is required and must be 'tap_to_run'"}
+        if rule_type != "tap_to_run":
+            return {"success": False, "msg": "rule_trigger is only valid for rule_type 'tap_to_run'"}
+        r = tuya_rule_trigger_ttr(rule_id)
+        return {"success": bool(r.get("success")), "result": r.get("result"), "msg": r.get("msg")}
+
+    if act == "rule_state":
+        # Automation only
+        rule_id = payload.get("rule_id")
+        enable = payload.get("enable")
+        rule_type = _normalize_rule_type(payload.get("rule_type") or payload.get("type"))
+        if rule_id is None or enable is None:
+            return {"success": False, "msg": "rule_id and enable are required"}
+        if rule_type is None:
+            return {"success": False, "msg": "rule_type is required and must be 'automation'"}
+        if rule_type != "automation":
+            return {"success": False, "msg": "rule_state is only valid for rule_type 'automation'"}
+        space_id = payload.get("space_id")  # optional, recommended when multiple spaces exist
+        r = tuya_rule_set_state(rule_id, bool(enable), space_id=space_id)
+        return {"success": bool(r.get("success")), "result": r.get("result"), "msg": r.get("msg")}
+
+    # Device logs (snake_case)
+    if act == "device_logs":
+        device_id = payload.get("device_id")
+        start_time_ms = payload.get("start_time_ms")
+        end_time_ms = payload.get("end_time_ms")
+        if not device_id or not start_time_ms or not end_time_ms:
+            return {"success": False, "msg": "device_id, start_time_ms, end_time_ms are required"}
+        r = tuya_device_logs(
+            device_id=str(device_id),
+            start_time_ms=int(start_time_ms),
+            end_time_ms=int(end_time_ms),
+            types=payload.get("types"),
+            size=int(payload.get("size", 100)),
+            codes=payload.get("codes"),
+            start_row_key=payload.get("start_row_key"),
+            query_type=int(payload.get("query_type", 1)),
+        )
+        return {"success": bool(r.get("success")), "result": r.get("result"), "msg": r.get("msg")}
 
     return {"success": False, "msg": f"Unsupported action: {act}"}
 
@@ -320,15 +476,12 @@ def pulsar_supervisor(_unused=None):
 
     while not stop_event.is_set():
         try:
-            # első indulás vagy előző hiba után új példányt építünk
             if not started:
-                # ha van régi példány, próbáljuk megállítani (csendben)
                 try:
                     open_pulsar.stop()
                 except Exception:
                     pass
 
-                # új példány + listener
                 open_pulsar = TuyaOpenPulsar(ACCESS_ID, ACCESS_KEY, MQ_ENDPOINT, PULSAR_TOPIC)
                 open_pulsar.add_message_listener(tuya_pulsar_listener)
 
@@ -336,22 +489,18 @@ def pulsar_supervisor(_unused=None):
                 started = True
                 logger.info("Tuya OpenPulsar started.")
 
-            # csak várunk a leállításra; nem állítjuk le percenként
             stop_event.wait(1.0)
 
         except Exception as e:
-            # bármilyen hiba: próbáljuk leállítani, majd új példányt hozunk létre
             logger.warning("Pulsar error: %s -- recreating in 5s", e)
             try:
                 open_pulsar.stop()
             except Exception:
                 pass
             started = False
-            # kis backoff, majd újrakezdjük a ciklust (új példányt építünk)
             if stop_event.wait(5.0):
                 break
 
-    # végső leállítás
     try:
         open_pulsar.stop()
     except Exception:

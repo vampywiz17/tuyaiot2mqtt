@@ -3,6 +3,32 @@ Changelog
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.0.4] - 2025-09-xx
+### Added
+- Support for passthrough API mode in `handle_api_request`, enabling direct Tuya API calls via MQTT with `method`, `path`, `params`, and `body`.
+- Helpers for Scene Linkage Rules:
+  - `tuya_rules_query` (list/filter rules).
+  - `tuya_rule_detail` (fetch rule details).
+  - `tuya_rule_trigger_ttr` (trigger Tap-to-Run rules).
+  - `tuya_rule_set_state` (enable/disable Automation rules).
+- Helpers for device logs via `tuya_device_logs`.
+- New high-level API actions (`action` mode in MQTT API request):
+  - `rule_list`, `rule_detail`, `rule_trigger`, `rule_state`.
+  - `device_logs`.
+- `rule_type` normalization function to clearly distinguish between `automation` and `tap_to_run`.
+
+### Changed
+- All API actions unified to snake_case naming convention (e.g. `list_devices`, `device_status`, `rule_list`).
+- Device specifications API improved:
+  - Added normalization layer to support both legacy (`/v1.1/.../specifications`) and modern (`/v1.0/.../specification`) endpoints.
+  - Unified response format with `dp_id`, `code`, `type`, and `values`.
+- Tuya OpenAPI, Pulsar, and MQTT sections refactored for clarity and better error handling.
+- Logging output improved (more explicit warnings for incomplete configuration).
+
+### Fixed
+- Queuing and offline MQTT publish handling made more robust.
+- Safer event processing in Tuya Pulsar listener and MQTT workers.
+
 ## [0.0.0.3] – 2025-09-10
 ### Added
 - Fast JSON serialization via `orjson` if available; fallback to `json` with compact separators. Introduced `_dumps()` helper.
