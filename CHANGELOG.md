@@ -3,7 +3,7 @@ Changelog
 
 All notable changes to this project will be documented in this file.
 
-## [0.0.0.4] - 2025-09-xx
+## [0.0.0.4] - 2025-09-14
 ### Added
 - Support for passthrough API mode in `handle_api_request`, enabling direct Tuya API calls via MQTT with `method`, `path`, `params`, and `body`.
 - Helpers for Scene Linkage Rules:
